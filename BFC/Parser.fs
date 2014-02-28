@@ -1,4 +1,6 @@
 ﻿module BFC.Parser
+open System
+
 type Instruction =
   | AddPtr of int
   | AddCell of int
@@ -45,10 +47,10 @@ let rec dump instructions =
   | [] -> ""
   | instruction :: rest ->
     match instruction with
-    | AddPtr n when n < 0 ->  new String('<'', -n)
-    | AddPtr n ->             new String('>'',  n)
-    | AddCell n when n < 0 -> new String('-'', -n)
-    | AddCell n ->            new String('+'',  n)
+    | AddPtr n when n < 0 ->  new String('<', -n)
+    | AddPtr n ->             new String('>',  n)
+    | AddCell n when n < 0 -> new String('-', -n)
+    | AddCell n ->            new String('+',  n)
     | Loop contents ->    "[" + dump contents + "]"
     | Read -> ","
     | Write -> "."
