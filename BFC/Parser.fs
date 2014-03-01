@@ -4,43 +4,14 @@ open System
 type Instruction =
   | AddPtr of int
   | AddCell of int
-  | Loop of Instruction list
   | Read
   | Write
+  | Loop of Instruction list
 
 let stl (s: string) = List.ofArray (s.ToCharArray())
 
 let accResult n instructionConversion rest =
   if n = 0 then rest else instructionConversion n :: rest
-
-let rec lex code : _ list * char list =
-  match code with
-  | [] -> [], []
-  | ch :: restCode ->
-    let restInstructions, nextCode = lex restCode
-    match restInstructions, ch with
-    | AddPtr n :: rest, '>' -> accResult (n + 1) AddPtr rest, nextCode
-    | _, '>' -> AddPtr 1 :: restInstructions, nextCode
-    
-    | AddPtr n :: rest, '<' -> accResult (n - 1) AddPtr rest, nextCode
-    | _, '<' -> AddPtr -1 :: restInstructions, nextCode
-    
-    | AddCell n :: rest, '+' -> accResult (n + 1) AddCell rest, nextCode
-    | _, '+' -> AddCell 1 :: restInstructions, nextCode
-    
-    | AddCell n :: rest, '-' -> accResult (n - 1) AddCell rest, nextCode
-    | _, '-' -> AddCell -1 :: restInstructions, nextCode
-    
-    | _, ',' -> Read :: restInstructions, nextCode
-    
-    | _, '.' -> Write :: restInstructions, nextCode
-    
-    | _, '[' ->
-      let restInstructionsAfterLoop, nextCode = lex nextCode
-      Loop restInstructions :: restInstructionsAfterLoop, nextCode
-    | _, ']' -> [], restCode
-    
-    | _ -> restInstructions, nextCode
 
 let rec dump instructions =
   match instructions with
@@ -55,3 +26,34 @@ let rec dump instructions =
     | Read -> ","
     | Write -> "."
     + dump rest
+
+let parse code =
+  let rec parse code =
+    match code with
+    | [] -> [], []
+    | ch :: restCode ->
+      let restInstructions, nextCode = parse restCode
+      match restInstructions, ch with
+      | AddPtr n :: rest, '>' -> accResult (n + 1) AddPtr rest, nextCode
+      | _, '>' -> AddPtr 1 :: restInstructions, nextCode
+      
+      | AddPtr n :: rest, '<' -> accResult (n - 1) AddPtr rest, nextCode
+      | _, '<' -> AddPtr -1 :: restInstructions, nextCode
+      
+      | AddCell n :: rest, '+' -> accResult (n + 1) AddCell rest, nextCode
+      | _, '+' -> AddCell 1 :: restInstructions, nextCode
+      
+      | AddCell n :: rest, '-' -> accResult (n - 1) AddCell rest, nextCode
+      | _, '-' -> AddCell -1 :: restInstructions, nextCode
+      
+      | _, ',' -> Read :: restInstructions, nextCode
+      
+      | _, '.' -> Write :: restInstructions, nextCode
+      
+      | _, '[' ->
+        let restInstructionsAfterLoop, nextCode = parse nextCode
+        Loop restInstructions :: restInstructionsAfterLoop, nextCode
+      | _, ']' -> [], restCode
+      
+      | _ -> restInstructions, nextCode
+  fst (parse code)
