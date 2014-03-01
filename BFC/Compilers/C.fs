@@ -27,7 +27,7 @@ let rec sourceFromBF indentLevel bf =
     | Loop code ->
       indent + "while (cells[loc]) {\n"
       +           sourceFromBF (indentLevel + 1) code
-      + indent + "}")
+      + indent + "}\n")
   |> List.reduce (+)
 
 let compile source out =
