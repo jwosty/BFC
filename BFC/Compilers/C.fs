@@ -17,14 +17,19 @@ let rec sourceFromBF indentLevel bf =
     | AddCell n when n < 0 -> indent + "cells[loc] -= " + string -n + ";\n"
     | AddCell _ -> ""
     
-    | Read -> indent + "cells[loc] = getchar;\n"
+    | Read -> indent + "cells[loc] = getchar();\n"
     
     | Write -> indent + "putchar(cells[loc]);\n"
     
     | Loop code ->
+      indent + "while (cells[loc]) {\n"
+      +           sourceFromBF (indentLevel + 1) code
+      + indent + "}")
+      (*
       indent +   "do {\n"
       +             sourceFromBF (indentLevel + 1) code + "\n"
       + indent + "} while (cells[loc]);\n")
+      *)
   |> List.reduce (+)
 
 let compile source out =
