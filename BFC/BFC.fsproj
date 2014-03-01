@@ -52,6 +52,7 @@
     <None Include="sample.b">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="script.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Compilers\" />

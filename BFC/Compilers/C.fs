@@ -9,6 +9,7 @@ let rec sourceFromBF indentLevel bf =
   |> List.map (fun instruction ->
     let indent = new String(' ', indentLevel * 2)
     match instruction with
+
     | AddPtr n when n > 0 -> indent + "loc += " + string n + ";\n"
     | AddPtr n when n < 0 -> indent + "loc -= " + string -n + ";\n"
     | AddPtr _ -> ""
@@ -20,16 +21,13 @@ let rec sourceFromBF indentLevel bf =
     | Read -> indent + "cells[loc] = getchar();\n"
     
     | Write -> indent + "putchar(cells[loc]);\n"
-    
+
+    // Optimization for "[-]" which sets the cell to 0
+    | Loop [AddCell -1] -> indent + "cells[loc] = 0;\n"
     | Loop code ->
       indent + "while (cells[loc]) {\n"
       +           sourceFromBF (indentLevel + 1) code
       + indent + "}")
-      (*
-      indent +   "do {\n"
-      +             sourceFromBF (indentLevel + 1) code + "\n"
-      + indent + "} while (cells[loc]);\n")
-      *)
   |> List.reduce (+)
 
 let compile source out =
