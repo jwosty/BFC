@@ -2,7 +2,6 @@
 open System
 open System.IO
 open System.Text.RegularExpressions
-open BFC.Compilers
 
 [<EntryPoint>]
 let main args = 
@@ -13,8 +12,8 @@ let main args =
     |> Array.map char
     |> List.ofArray
     |> Parser.parse
-    |> C.sourceFromBF 1
+    |> BFC.To.CSource 1
   let cSource = Regex.Replace(template, "  /// --- BF CODE --- ///\n", bDump)
-  ignore (C.compile cSource args.[1])
+  ignore (BFC.To.C cSource args.[1])
   
   0

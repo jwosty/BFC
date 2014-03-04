@@ -41,7 +41,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Parser.fs" />
-    <Compile Include="Compilers\C.fs" />
+    <Compile Include="To.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" />
@@ -55,6 +55,6 @@
     <None Include="script.fsx" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Compilers\" />
+    <Folder Include="To\" />
   </ItemGroup>
 </Project>

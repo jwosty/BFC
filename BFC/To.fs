@@ -1,10 +1,11 @@
-﻿module BFC.Compilers.C
+﻿module BFC.To
 open System
 open System.IO
 open System.Diagnostics
 open BFC.Parser
 
-let rec sourceFromBF indentLevel bf =
+/// Converts a list of BF instructions into C statements
+let rec CSource indentLevel bf =
   bf
   |> List.map (fun instruction ->
     let indent = new String(' ', indentLevel * 2)
@@ -26,11 +27,12 @@ let rec sourceFromBF indentLevel bf =
     | Loop [AddCell -1] -> indent + "cells[loc] = 0;\n"
     | Loop code ->
       indent + "while (cells[loc]) {\n"
-      +           sourceFromBF (indentLevel + 1) code
+      +           CSource (indentLevel + 1) code
       + indent + "}\n")
   |> List.reduce (+)
 
-let compile source out =
+/// Compile C source code by invoking gcc
+let C source out =
   let sourceFileName = out + ".c"
   File.WriteAllText(sourceFileName, source)
   let compiler, args = "gcc", sourceFileName + " -o " + out
