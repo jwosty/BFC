@@ -1,4 +1,4 @@
-﻿module BFC.Main
+﻿module BF.Compiler.Main
 open System
 open System.IO
 open System.Text.RegularExpressions

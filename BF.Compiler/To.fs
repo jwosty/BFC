@@ -1,8 +1,8 @@
-﻿module BFC.To
+﻿module BF.Compiler.To
 open System
 open System.IO
 open System.Diagnostics
-open BFC.Parser
+open BF.Common
 
 /// Converts a list of BF instructions into C statements
 let rec CSource indentLevel bf =

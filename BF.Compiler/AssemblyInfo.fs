@@ -1,4 +1,4 @@
-﻿module BFC.AssemblyInfo
+﻿module BF.Compiler.AssemblyInfo
 open System.Reflection
 open System.Runtime.CompilerServices
 

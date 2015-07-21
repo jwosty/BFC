@@ -1,4 +1,4 @@
-﻿module BFC.Parser
+﻿module BF.Common
 open System
 
 type Instruction =
