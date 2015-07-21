@@ -41,7 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Parser.fs" />
+    <Compile Include="..\BF.Common\Parser.fs" />
     <Compile Include="To.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
@@ -55,8 +55,5 @@
     </None>
     <None Include="script.fsx" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="To\" />
   </ItemGroup>
 </Project>
