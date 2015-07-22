@@ -1,4 +1,5 @@
 ﻿module BF.Compiler.Main
+open BF.Common
 open System
 open System.IO
 open System.Text.RegularExpressions
@@ -60,9 +61,9 @@ let main args =
     |> File.ReadAllBytes
     |> Array.map char
     |> List.ofArray
-    |> Parser.parse
-    |> BFC.To.CSource 1
+    |> parse
+    |> To.CSource 1
   let cSource = Regex.Replace(template, "  /// --- BF CODE --- ///\n", bDump)
-  ignore (BFC.To.C cSource args.[1])
+  ignore (To.C cSource args.[1])
   
   0
