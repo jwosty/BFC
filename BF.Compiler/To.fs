@@ -10,7 +10,6 @@ let rec CSource indentLevel bf =
   |> List.map (fun instruction ->
     let indent = new String(' ', indentLevel * 2)
     match instruction with
-
     | AddPtr n when n > 0 -> indent + "loc += " + string n + ";\n"
     | AddPtr n when n < 0 -> indent + "loc -= " + string -n + ";\n"
     | AddPtr _ -> ""
@@ -22,10 +21,10 @@ let rec CSource indentLevel bf =
     | Read -> indent + "cells[loc] = getchar();\n"
     
     | Write -> indent + "putchar(cells[loc]);\n"
-
-    // Optimization for "[-]" which sets the cell to 0
-    | Loop [AddCell -1] -> indent + "cells[loc] = 0;\n"
-    | Loop code ->
+    
+    | ClearCell -> indent + "cells[loc] = 0;\n"
+    
+    | WhileNonzero code ->
       indent + "while (cells[loc]) {\n"
       +           CSource (indentLevel + 1) code
       + indent + "}\n")

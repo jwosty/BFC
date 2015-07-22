@@ -57,13 +57,9 @@ let main args =
   
   let template = File.ReadAllText("template.c")
   let bDump =
-    options.inFile
-    |> File.ReadAllBytes
-    |> Array.map char
-    |> List.ofArray
-    |> parse
+    options.inFile |> File.ReadAllText
+    |> parse |> toIR |> optimize
     |> To.CSource 1
   let cSource = Regex.Replace(template, "  /// --- BF CODE --- ///\n", bDump)
   ignore (To.C cSource args.[1])
-  
   0

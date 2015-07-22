@@ -1,59 +1,54 @@
 ﻿module BF.Common
 open System
 
-type Instruction =
-  | AddPtr of int
-  | AddCell of int
-  | Read
-  | Write
-  | Loop of Instruction list
+type Instruction = | IncPtr | DecPtr | IncCell | DecCell | WhileNonzero of Instruction list | Read | Write
 
-let stl (s: string) = List.ofArray (s.ToCharArray())
-
-let accResult n instructionConversion rest =
-  if n = 0 then rest else instructionConversion n :: rest
-
-let rec dump instructions =
-  match instructions with
-  | [] -> ""
-  | instruction :: rest ->
-    match instruction with
-    | AddPtr n when n < 0 ->  new String('<', -n)
-    | AddPtr n ->             new String('>',  n)
-    | AddCell n when n < 0 -> new String('-', -n)
-    | AddCell n ->            new String('+',  n)
-    | Loop contents ->    "[" + dump contents + "]"
-    | Read -> ","
-    | Write -> "."
-    + dump rest
+let rec recurse baseCase f (state: 'State) =
+  if baseCase state
+  then recurse baseCase f (f state)
+  else state
 
 let parse code =
-  let rec parse code =
-    match code with
-    | [] -> [], []
-    | ch :: restCode ->
-      let restInstructions, nextCode = parse restCode
-      match restInstructions, ch with
-      | AddPtr n :: rest, '>' -> accResult (n + 1) AddPtr rest, nextCode
-      | _, '>' -> AddPtr 1 :: restInstructions, nextCode
-      
-      | AddPtr n :: rest, '<' -> accResult (n - 1) AddPtr rest, nextCode
-      | _, '<' -> AddPtr -1 :: restInstructions, nextCode
-      
-      | AddCell n :: rest, '+' -> accResult (n + 1) AddCell rest, nextCode
-      | _, '+' -> AddCell 1 :: restInstructions, nextCode
-      
-      | AddCell n :: rest, '-' -> accResult (n - 1) AddCell rest, nextCode
-      | _, '-' -> AddCell -1 :: restInstructions, nextCode
-      
-      | _, ',' -> Read :: restInstructions, nextCode
-      
-      | _, '.' -> Write :: restInstructions, nextCode
-      
-      | _, '[' ->
-        let restInstructionsAfterLoop, nextCode = parse nextCode
-        Loop restInstructions :: restInstructionsAfterLoop, nextCode
-      | _, ']' -> [], restCode
-      
-      | _ -> restInstructions, nextCode
-  fst (parse code)
+  let rec parse start expectingRBracket (code: string) =
+    (start, [])
+    |> recurse
+      (fun (i, chr) ->
+        if expectingRBracket then
+          if i >= code.Length then failwith "Unmatched right bracket"
+          code.[i] <> ']'
+        else i < code.Length)
+      (fun (i, tokens) ->
+        match code.[i] with
+            | '>' -> i+1, IncPtr::tokens | '<' -> i+1, DecPtr::tokens | '+' -> i+1, IncCell::tokens
+            | '-' -> i+1, DecCell::tokens | ',' -> i+1, Instruction.Read::tokens | '.' -> i+1, Instruction.Write::tokens
+            | '[' ->
+              let afterLoop, loopTokens = parse (i+1) true code
+              afterLoop, (WhileNonzero loopTokens)::tokens
+            | ']' -> failwith "Unexpected right bracket"
+            | _ -> i+1, tokens)
+    |> (function (i, tokens) -> i+1, List.rev tokens)
+  parse 0 false code |> snd
+
+/// Optimizeable intermediate BF code (IR = intermediate representation)
+type IRInstruction =
+  | AddPtr of int
+  | AddCell of int
+  | ClearCell
+  | Read
+  | Write
+  | WhileNonzero of IRInstruction list
+
+let rec toIR instructions =
+  instructions |> List.map (function
+    | IncPtr -> AddPtr 1 | DecPtr -> AddPtr -1 | IncCell -> AddCell 1
+    | DecCell -> AddCell -1 | Instruction.Read -> Read | Instruction.Write -> Write
+    | Instruction.WhileNonzero instructions -> WhileNonzero(toIR instructions))
+
+let rec optimize instructions =
+  match instructions with
+  | [] -> []
+  | AddPtr a :: AddPtr b :: rest -> AddPtr(a+b) :: rest |> optimize
+  | AddCell a :: AddCell b :: rest -> AddCell(a+b) :: rest |> optimize
+  | WhileNonzero([AddCell(-1)]) :: rest -> ClearCell :: optimize rest
+  | WhileNonzero(instructions) :: rest -> WhileNonzero(optimize instructions) :: optimize rest
+  | this :: rest -> this :: optimize rest

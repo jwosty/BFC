@@ -55,6 +55,9 @@
     <None Include="..\BF.Common\sample.b">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\BF.Common\fibonacci.b">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="script.fsx" />
     <None Include="packages.config" />
   </ItemGroup>
