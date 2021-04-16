@@ -16,7 +16,7 @@ type CliArgs =
     interface IArgParserTemplate with
         member s.Usage =
             match s with
-            | Target _ -> "Compile targetting the specified runtime. Currently, only 'native' is supported, which compiles to native code using GCC."
+            | Target _ -> "Compile targetting the specified runtime. Currently, only 'native' is supported, which is supposed to compile to native code using GCC, but is at the moment pretty broken."
             | InFile _ -> "Specify an input source file"
             | OutFile _ -> "Specify an output source file"
 
@@ -24,7 +24,7 @@ let argParser = ArgumentParser.Create<CliArgs>()
 
 let mainCompilation inFile outFile = async {
     let assembly = typeof<CliArgs>.Assembly
-    printfn "resources: %A" (assembly.GetManifestResourceNames ())
+    //printfn "resources: %A" (assembly.GetManifestResourceNames ())
 
     let templateName = $"{assembly.GetName().Name}.template.c"
     //printfn "searching for %s" name
@@ -48,7 +48,8 @@ let main args =
 
         let target = cliArgs.GetResult ((<@ Target @>), defaultValue = Target.Native)
         let inFile = cliArgs.GetResult <@ InFile @>
-        let outFile = cliArgs.GetResult <@ OutFile @>
+
+        let outFile = cliArgs.GetResult (<@ OutFile @>, defaultValue = Path.GetFileNameWithoutExtension inFile)
 
         Async.RunSynchronously (mainCompilation inFile outFile)
         0
