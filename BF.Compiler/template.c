@@ -1,6 +1,8 @@
 ﻿#include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
 int main(void)
 {
@@ -15,6 +17,8 @@ int main(void)
   newt.c_lflag &= ~(ICANON);
   tcsetattr(STDIN_FILENO, TCSANOW, &newt);
   
+  memset(cells, 0, sizeof(cells));
+
   /// --- BF CODE --- ///
   
   // Restore old terminal settings

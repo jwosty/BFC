@@ -16,7 +16,7 @@ type CliArgs =
     interface IArgParserTemplate with
         member s.Usage =
             match s with
-            | Target _ -> "Compile targetting the specified runtime. Currently, only 'native' is supported, which is supposed to compile to native code using GCC, but is at the moment pretty broken."
+            | Target _ -> "Compile targetting the specified runtime. Currently, only 'native' is supported, which compiles to native code using GCC."
             | InFile _ -> "Specify an input source file"
             | OutFile _ -> "Specify an output source file"
 

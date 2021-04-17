@@ -35,7 +35,7 @@ let C source out =
   let sourceFileName = out + ".c"
   File.WriteAllText(sourceFileName, source)
   let compiler, args = "gcc", sourceFileName + " -o " + out
-  printfn "Compiling program via: `%s %s`" compiler args
+  printfn "Compiling: `%s %s`" compiler args
 
   // TODO: redirect stdout and stderr to log files
   let cproc = new Process()
