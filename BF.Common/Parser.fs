@@ -1,4 +1,4 @@
-﻿module BF
+﻿module BF.Parser
 open System
 
 type Instruction = | IncPtr | DecPtr | IncCell | DecCell | WhileNonzero of Instruction list | Read | Write
@@ -44,11 +44,3 @@ let rec toIR instructions =
         | DecCell -> AddCell -1 | Instruction.Read -> Read | Instruction.Write -> Write
         | Instruction.WhileNonzero instructions -> WhileNonzero(toIR instructions))
 
-let rec optimize instructions =
-    match instructions with
-    | [] -> []
-    | AddPtr a :: AddPtr b :: rest -> AddPtr(a+b) :: rest |> optimize
-    | AddCell a :: AddCell b :: rest -> AddCell(a+b) :: rest |> optimize
-    | WhileNonzero([AddCell(-1)]) :: rest -> ClearCell :: optimize rest
-    | WhileNonzero(instructions) :: rest -> WhileNonzero(optimize instructions) :: optimize rest
-    | this :: rest -> this :: optimize rest

@@ -1,4 +1,6 @@
 ﻿module BF.Optimizer.Tests
+open BF.Optimizer
+open BF.Parser
 open System
 open BF
 open FsUnit.Xunit

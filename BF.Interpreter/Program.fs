@@ -1,7 +1,8 @@
 ﻿module BF.Interpreter.Main
-open BF
 open System
 open System.IO
+open BF.Optimizer
+open BF.Parser
 
 /// Interprets a BF program
 let rec execute (cells: char[]) currentCell program =

@@ -1,7 +1,9 @@
 ﻿#load "../BF.Common/Parser.fs"
+#load "../BF.Common/Optimizer.fs"
 #load "To.fs"
 open System
-open BF
+open BF.Optimizer
+open BF.Parser
 
 let strToCharArr (s: string) = s.ToCharArray()
 //let parse =

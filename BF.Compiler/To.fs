@@ -2,7 +2,8 @@
 open System
 open System.IO
 open System.Diagnostics
-open BF
+open BF.Optimizer
+open BF.Parser
 
 /// Converts a list of BF instructions into C statements
 let rec CSource indentLevel bf =

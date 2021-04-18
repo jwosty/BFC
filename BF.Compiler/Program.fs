@@ -4,7 +4,8 @@ open System.IO
 open System.Reflection
 open System.Text.RegularExpressions
 open Argu
-open BF
+open BF.Optimizer
+open BF.Parser
 
 type Target = | Native = 0
 
