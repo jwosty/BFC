@@ -1,10 +1,10 @@
 ﻿module BF.Compiler.Main
-open BF.Common
 open System
 open System.IO
 open System.Reflection
 open System.Text.RegularExpressions
 open Argu
+open BF
 
 type Target = | Native = 0
 

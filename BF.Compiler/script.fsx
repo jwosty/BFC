@@ -1,15 +1,18 @@
-﻿#load "Parser.fs"
+﻿#load "../BF.Common/Parser.fs"
 #load "To.fs"
 open System
-open BFC
-open BFC.Parser
+open BF
 
 let strToCharArr (s: string) = s.ToCharArray()
-let parse =
-  strToCharArr
-  >> List.ofArray
-  >> Parser.parse
-let compileCBody = parse >> BFC.To.CSource 0
+//let parse =
+//  strToCharArr
+//  >> List.ofArray
+//  >> parse
+let compileCBody s =
+    parse s
+    |> toIR
+    |> optimize
+    |> BF.Compiler.To.CSource 0
 
 let s = """>>+++[<+++>-]<+
 [
@@ -58,13 +61,13 @@ let myString = """>>+++[<+++>-]<+[>+++>>+++[<+++>-]<+[<]>-]<+++[>+++
 +<-]>+[>----<-]>.>[>+>+<<-]++++[>++<-]>.>.+++.>++[
 <--->-]<.>++[<---->-]<.<<<+."""
 
-s
-|> parse
-|> Parser.dump
-|> strToCharArr
-|> Seq.windowed 59
-|> Seq.take 5
-|> Array.ofSeq
-|> Array.fold (fun str chars -> str + "\n" + (new String(chars))) ""
+//s
+//|> parse
+//|> Parser.dump
+//|> strToCharArr
+//|> Seq.windowed 59
+//|> Seq.take 5
+//|> Array.ofSeq
+//|> Array.fold (fun str chars -> str + "\n" + (new String(chars))) ""
 
 //s |> strToCharArr |> Array.filter (fun c -> c = '>' || c = '<' || c = '+' || c = '[' || c = ']' || c = ',' || c = '.')
