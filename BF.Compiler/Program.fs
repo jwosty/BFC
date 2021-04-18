@@ -12,6 +12,7 @@ type Target = | Native = 0
 type CliArgs =
     | [<MainCommand>] InFile of string
     | [<AltCommandLine "-o">] OutFile of string
+    | [<AltCommandLine "-NO">] NoOptimize
     | Target of Target
 
     interface IArgParserTemplate with
@@ -20,10 +21,11 @@ type CliArgs =
             | Target _ -> "Compile targetting the specified runtime. Currently, only 'native' is supported, which compiles to native code using GCC."
             | InFile _ -> "Specify an input source file"
             | OutFile _ -> "Specify an output source file"
+            | NoOptimize _ -> "Skip optimization"
 
 let argParser = ArgumentParser.Create<CliArgs>()
 
-let mainCompilation inFile outFile = async {
+let mainCompilation inFile outFile shouldOptimize = async {
     let assembly = typeof<CliArgs>.Assembly
     //printfn "resources: %A" (assembly.GetManifestResourceNames ())
 
@@ -32,10 +34,14 @@ let mainCompilation inFile outFile = async {
     use templateReader = new StreamReader(assembly.GetManifestResourceStream templateName)
     let! template = Async.AwaitTask (templateReader.ReadToEndAsync ())
     //printfn "%A" template
-    let bDump =
+    let ir =
         inFile |> File.ReadAllText
-        |> parse |> toIR |> optimize
-        |> To.CSource 1
+        |> parse |> toIR
+    let optIr =
+        if shouldOptimize then
+            optimize ir
+        else ir
+    let bDump = optIr |> To.CSource 1
     let cSource = Regex.Replace(template, "  /// --- BF CODE --- ///", bDump)
     //printfn "cSrc:\n%s" cSource
     To.C cSource outFile
@@ -51,8 +57,9 @@ let main args =
         let inFile = cliArgs.GetResult <@ InFile @>
 
         let outFile = cliArgs.GetResult (<@ OutFile @>, defaultValue = Path.GetFileNameWithoutExtension inFile)
+        let noOptimize = cliArgs.Contains (<@ NoOptimize @>)
 
-        Async.RunSynchronously (mainCompilation inFile outFile)
+        Async.RunSynchronously (mainCompilation inFile outFile (not noOptimize))
         0
     with
         | :? ArguParseException ->
