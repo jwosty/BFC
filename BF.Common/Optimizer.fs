@@ -17,7 +17,7 @@ let rec optimize2 instructions =
     | [] -> []
     | WhileNonzero([AddCell(-1)]) :: rest -> ClearCell :: optimize2 rest
     | WhileNonzero(instructions) :: rest -> WhileNonzero(optimize2 instructions) :: optimize2 rest
-    | this :: rest -> this :: optimize1 rest
+    | this :: rest -> this :: optimize2 rest
 
 /// All optimizations
 let rec optimize instructions =

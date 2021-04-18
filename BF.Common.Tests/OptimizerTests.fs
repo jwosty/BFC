@@ -32,4 +32,14 @@ let ``Given a combination of atom sequences`` () =
     |> parse |> toIR |> optimize
     |> should equal [AddCell 4; AddPtr 2; AddCell 3; AddPtr -3; AddCell -2; AddPtr 1; WhileNonzero [AddCell -2]]
 
+[<Fact>]
+let ``Given a clear loop`` () =
+    "[-]"
+    |> parse |> toIR |> optimize
+    |> should equal [ClearCell]
 
+[<Fact>]
+let ``Given a clear loop inside a more complex loop`` () =
+    "++>+++>++[>[-]<<]"
+    |> parse |> toIR |> optimize
+    |> should equal [AddCell 2; AddPtr 1; AddCell 3; AddPtr 1; AddCell 2; WhileNonzero [AddPtr 1; ClearCell; AddPtr -2]]
