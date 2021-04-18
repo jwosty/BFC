@@ -15,7 +15,9 @@ let rec optimize1 instructions =
 let rec optimize2 instructions =
     match instructions with
     | [] -> []
-    | WhileNonzero([AddCell(-1)]) :: rest -> ClearCell :: optimize2 rest
+    // optimize clear-loops (`[-] and [+]` become ClearCell)
+    | WhileNonzero([AddCell -1 | AddCell 1]) :: rest -> ClearCell :: optimize2 rest
+    
     | WhileNonzero(instructions) :: rest -> WhileNonzero(optimize2 instructions) :: optimize2 rest
     | this :: rest -> this :: optimize2 rest
 
