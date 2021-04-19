@@ -60,28 +60,34 @@ let ``Given a + clear loop inside a more complex loop`` () =
 let ``Given a simple move loop`` () =
     "+++++[->+<]"
     |> parse |> toIR |> optimize
-    |> should equal [AddCell 5; MoveMulCell(0,1,1)]
+    |> should equal [AddCell 5; MoveMulCell(1,1)]
 
 [<Fact>]
 let ``Given a move loop with a non-adjacent cell`` () =
     "+++++[->>+<<]"
     |> parse |> toIR |> optimize
-    |> should equal [AddCell 5; MoveMulCell(0,2,1)]
+    |> should equal [AddCell 5; MoveMulCell(2,1)]
 
 [<Fact>]
 let ``Given a move loop with a distant cell`` () =
     "+++++[->>>>>+<<<<<]"
     |> parse |> toIR |> optimize
-    |> should equal [AddCell 5; MoveMulCell(0,5,1)]
+    |> should equal [AddCell 5; MoveMulCell(5,1)]
 
 [<Fact>]
 let ``Given a move-and-multiply loop with a factor of 3`` () =
     "+++++[->+++<]"
     |> parse |> toIR |> optimize
-    |> should equal [AddCell 5; MoveMulCell(0,1,3)]
+    |> should equal [AddCell 5; MoveMulCell(1,3)]
 
 [<Fact>]
 let ``Given a move-and-multiply loop with a factor of 6 and non-adjacent cells`` () =
     "+++++[->>>++++++<<<]"
     |> parse |> toIR |> optimize
-    |> should equal [AddCell 5; MoveMulCell(0,3,6)]
+    |> should equal [AddCell 5; MoveMulCell(3,6)]
+
+[<Fact>]
+let ``Given a move-and-multiply loop with iterator decrement at end of loop `` () =
+    "+++++[>>++++<<-]"
+    |> parse |> toIR |> optimize
+    |> should equal [AddCell 5; MoveMulCell(2,4)]

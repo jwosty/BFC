@@ -37,7 +37,7 @@ type IRInstruction =
     | Read
     | Write
     | WhileNonzero of IRInstruction list
-    | MoveMulCell of relSrc: int * relDst: int * multiplicationFactor: int
+    | MoveMulCell of relDst: int * multiplicationFactor: int
 
 let rec toIR instructions =
     instructions |> List.map (function
