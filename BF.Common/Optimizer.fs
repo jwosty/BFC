@@ -17,87 +17,24 @@ let optimize1 instructions =
     | WhileNonzero _ :: rest -> optimize1 rest
     | _ -> optimize1 instructions
 
-//type MulLoopBodyParserState =
-//    | Init
-//    | 
-
-type MulLoopBodyParserState =
-    | Init
-    | ExpectingAddPtr of decrWasFirst:bool
-    | ExpectingAddCell of decrWasFirst:bool
-    | Error
-
 let (|MoveMulLoopBody|_|) loopBody =
-    // Move-mul loops can either have the iterator decrement instruction at the beginning (e.g. [->+<]) or  the end
-    // (e.g. [>+<-]) of the loop -- both work perfectly fine.
-    // We also account here for loops with multiple destinations.
-
-    //let rec innerCollect decrWasFirst instructions =
-    //    match instructions with
-    //    // we should have already caught the [-] scenario in an earlier optimization level, so this branch actually does
-    //    // NOT correspond to that situation
-    //    | [] when decrWasFirst -> None
-    //    | [] -> Some []
-    //    | AddPtr relDst :: AddCell relFactor :: rest
-
-    //let blah =
-    //    match loopBody with
-    //    | [] -> None
-    //    | AddCell -1 :: rest ->
-    //        // essentially a little finite state machine here
-    //        let xyz = loopBody |> List.fold (fun state item ->
-    //            match state with
-    //            | None -> 
-    //        )
-    //        []
-    //    | rest -> []
-
-    //let blah = 
-    //    loopBody |> List.fold (fun state item ->
-    //        match state, item with
-    //        | MulLoopBodyParserState.Init, AddCell -1 ->
-    //            MulLoopBodyParserState.ExpectingAddPtr true
-    //        | MulLoopBodyParserState.ExpectingAddCell, AddPtr p ->
-    //            MulLoopBodyParserState.ExpectingAddPtr
-    //    )
-
-    let rec f1 ΔpAcc list =
-        match list with
-        | [AddPtr p] when p = -ΔpAcc -> Some []
-        | AddPtr p :: AddCell c :: xs ->
+    let rec f decrIsAtBeginning ΔpAcc list =
+        // either we saw the decrementer instruction at the beginning, in which case we shouldn't see it again at the end,
+        // or we didn't see it at the beginning, in which case we need to see it at the end.
+        match decrIsAtBeginning, list with
+        | true, [AddPtr p] when p = -ΔpAcc -> Some []
+        | false, [AddPtr p; AddCell -1] when p = -ΔpAcc -> Some []
+        | _, AddPtr p :: AddCell c :: xs ->
             let ΔpAcc' = ΔpAcc+p
-            match f1 ΔpAcc' xs with
-            | Some xs -> Some ((ΔpAcc',c)::xs)
-            | None -> None
-        | _ -> None
-
-    let rec f2 ΔpAcc list =
-        match list with
-        | [AddPtr p; AddCell -1] when p = -ΔpAcc -> Some []
-        | AddPtr p :: AddCell c :: xs ->
-            let ΔpAcc' = ΔpAcc+p
-            match f2 ΔpAcc' xs with
+            match f decrIsAtBeginning ΔpAcc' xs with
             | Some xs -> Some ((ΔpAcc',c)::xs)
             | None -> None
         | _ -> None
 
     match loopBody with
-    | AddCell -1 :: rest ->
-        match f1 0 rest with
-        | Some result -> Some result
-        | None -> None
-    | rest -> f2 0 rest
-
-    //match loopBody with
-    //| [] -> None
-    //| AddCell -1 :: rest ->
-    //    ()
-
-    //match loopBody with
-    //| [AddCell -1; AddPtr dst; AddCell factor; AddPtr ndst]
-    //| [AddPtr dst; AddCell factor; AddPtr ndst; AddCell -1] when dst = -ndst ->
-    //    Some [dst, factor]
-    //| _ -> None
+    | [] -> None
+    | AddCell -1 :: rest -> f true 0 rest
+    | rest -> f false 0 rest
 
 /// Level-2-only optimizations
 let rec optimize2 instructions =
