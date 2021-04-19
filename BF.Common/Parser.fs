@@ -32,7 +32,7 @@ let parse code =
 /// Optimizeable intermediate BF code (IR = intermediate representation)
 type IRInstruction =
     | AddPtr of int
-    | AddCell of int
+    | AddCell of offset:int * number:int
     | ClearCell
     | Read
     | Write
@@ -46,7 +46,7 @@ type IRInstruction =
 
 let rec toIR instructions =
     instructions |> List.map (function
-        | IncPtr -> AddPtr 1 | DecPtr -> AddPtr -1 | IncCell -> AddCell 1
-        | DecCell -> AddCell -1 | Instruction.Read -> Read | Instruction.Write -> Write
+        | IncPtr -> AddPtr 1 | DecPtr -> AddPtr -1 | IncCell -> AddCell (0, 1)
+        | DecCell -> AddCell (0,-1) | Instruction.Read -> Read | Instruction.Write -> Write
         | Instruction.WhileNonzero instructions -> WhileNonzero(toIR instructions))
 

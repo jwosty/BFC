@@ -10,7 +10,7 @@ let optimize1 instructions =
         match instructions with
         | [] -> []
         | AddPtr a :: AddPtr b :: rest -> AddPtr(a+b) :: rest |> optimize1
-        | AddCell a :: AddCell b :: rest -> AddCell(a+b) :: rest |> optimize1
+        | AddCell (0, a) :: AddCell (0, b) :: rest -> AddCell(0, a+b) :: rest |> optimize1
         | WhileNonzero(instructions) :: rest -> WhileNonzero(optimize1 instructions) :: optimize1 rest
         | this :: rest -> this :: optimize1 rest
     match instructions with
@@ -23,8 +23,8 @@ let (|MoveMulLoopBody|_|) loopBody =
         // or we didn't see it at the beginning, in which case we need to see it at the end.
         match decrIsAtBeginning, list with
         | true, [AddPtr p] when p = -ΔpAcc -> Some []
-        | false, [AddPtr p; AddCell -1] when p = -ΔpAcc -> Some []
-        | _, AddPtr p :: AddCell c :: xs ->
+        | false, [AddPtr p; AddCell (0,-1)] when p = -ΔpAcc -> Some []
+        | _, AddPtr p :: AddCell (0,c) :: xs ->
             let ΔpAcc' = ΔpAcc+p
             match f decrIsAtBeginning ΔpAcc' xs with
             | Some xs -> Some ((ΔpAcc',c)::xs)
@@ -33,24 +33,31 @@ let (|MoveMulLoopBody|_|) loopBody =
 
     match loopBody with
     | [] -> None
-    | AddCell -1 :: rest -> f true 0 rest
+    | AddCell (0,-1) :: rest -> f true 0 rest
     | rest -> f false 0 rest
 
 /// Level-2-only optimizations
 let rec optimize2 instructions =
     match instructions with
     | [] -> []
-    // optimize clear-loops (`[-] and [+]` become ClearCell)
-    | WhileNonzero([AddCell -1 | AddCell 1]) :: rest -> ClearCell :: optimize2 rest
-    
-    // move loops
-    | WhileNonzero(MoveMulLoopBody targets) :: rest -> MoveMulCell targets :: optimize2 rest
-
-    | WhileNonzero(instructions) :: rest -> WhileNonzero(optimize2 instructions) :: optimize2 rest
     | this :: rest -> this :: optimize2 rest
 
+/// Level-3-only optimizations
+let rec optimize3 instructions =
+    match instructions with
+    | [] -> []
+    // optimize clear-loops (`[-] and [+]` become ClearCell)
+    | WhileNonzero([AddCell(0,-1) | AddCell (0, 1)]) :: rest -> ClearCell :: optimize3 rest
+    
+    // move loops
+    | WhileNonzero(MoveMulLoopBody targets) :: rest -> MoveMulCell targets :: optimize3 rest
+
+    | WhileNonzero(instructions) :: rest -> WhileNonzero(optimize3 instructions) :: optimize3 rest
+    | this :: rest -> this :: optimize3 rest
+    
 /// All optimizations
 let rec optimize instructions =
     instructions
     |> optimize1
     |> optimize2
+    |> optimize3

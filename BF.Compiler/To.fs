@@ -21,8 +21,8 @@ let rec CSource indentLevel bf =
         | AddPtr n when n < 0 -> indent + "p -= " + string -n + ";\n"
         | AddPtr _ -> ""
     
-        | AddCell n when n > 0 -> indent + "data[p] += " + string n + ";\n"
-        | AddCell n when n < 0 -> indent + "data[p] -= " + string -n + ";\n"
+        | AddCell (ptrOffset, n) when n > 0 -> indent + "data[p] += " + string n + ";\n"
+        | AddCell (ptrOffset, n) when n < 0 -> indent + "data[p] -= " + string -n + ";\n"
         | AddCell _ -> ""
     
         | Read -> indent + "data[p] = getchar();\n"

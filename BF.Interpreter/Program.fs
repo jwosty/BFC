@@ -9,7 +9,7 @@ let rec execute (cells: char[]) currentCell program =
     program |> Seq.fold (fun currentCell instruction ->
         match instruction with
         | AddPtr(n) -> currentCell + n
-        | AddCell(n) -> cells.[currentCell] <- cells.[currentCell] + char n; currentCell
+        | AddCell(pOffset,n) -> cells.[currentCell+pOffset] <- cells.[currentCell] + char n; currentCell
         | ClearCell -> cells.[currentCell] <- '\000'; currentCell
         | Read -> cells.[currentCell] <- (System.Console.ReadKey ()).KeyChar; currentCell
         | Write -> System.Console.Write cells.[currentCell]; currentCell

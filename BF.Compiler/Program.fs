@@ -23,7 +23,7 @@ type CliArgs =
             | Target _ -> "Compile targetting the specified runtime. Currently, only 'native' is supported, which compiles to native code using GCC."
             | InFile _ -> "Specify an input source file."
             | OutFile _ -> "Specify an output source file."
-            | OptimizationLevel _ -> "Level of optimizations to apply, where 0 is no optimizations. Valid values are 1 through 2."
+            | OptimizationLevel _ -> "Level of optimizations to apply, where 0 is no optimizations. Valid values are 1 through 3."
             | NCells _ -> "The number of cells to allocate in the compiled program. Default is 1024."
 
 let argParser = ArgumentParser.Create<CliArgs>()
@@ -42,7 +42,7 @@ let mainCompilation inFile outFile oLevel (nCells: int option) = async {
         |> parse |> toIR
 
     let optFuncs =
-        [|id; optimize1; optimize2|].[0 .. (oLevel |> max 0 |> min 2)]
+        [|id; optimize1; optimize2; optimize3|].[0 .. (oLevel |> max 0 |> min 3)]
         |> Array.rev
     let optIr =
         optFuncs
