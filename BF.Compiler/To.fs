@@ -7,7 +7,6 @@ open BF.Optimizer
 open BF.Parser
 
 let inline private append (x: 'a) (sb: ^T) =
-    //sb.Append x |> ignore
     ((^T) : (member Append : 'a -> ^T) sb, x)
     |> ignore
 
@@ -15,6 +14,14 @@ let withSignAsOp (x: int) =
     if x = 0 then ""
     else if x > 0 then "+" + string x
     else string x
+
+let appendWithSignAsOp (x: int) (sb: StringBuilder) =
+    if x = 0 then ()
+    else if x > 0 then
+        sb |> append "+"
+        sb |> append x
+    else
+        sb |> append x
 
 /// Converts a list of BF instructions into C statements
 let rec CSource indentLevel bf =
@@ -41,25 +48,23 @@ let rec CSource indentLevel bf =
             +           CSource (indentLevel + 1) code
             + indent + "}\n"
 
-        | MoveMulCell dstsAndFactors ->
+        | MoveMulCell (relSrc, destinations) ->
             let sb = new StringBuilder()
-            for (relDst, factor) in dstsAndFactors do
-                let relDstWithOp =
-                    if relDst < 0 then string relDst else "+" + string relDst
+            for (relDst, factor) in destinations do
                 sb |> append indent
                 sb |> append "data[p"
-                if relDst < 0 then
-                    sb |> append relDst
-                else
-                    sb |> append "+"
-                    sb |> append relDst
-                sb |> append "] += data[p]"
+                sb |> appendWithSignAsOp relDst
+                sb |> append "] += data[p"
+                sb |> appendWithSignAsOp relSrc
+                sb |> append "]"
                 if factor <> 1 then
                     sb |> append " * "
                     sb |> append factor
                 sb |> append ";\n"
             sb |> append indent
-            sb |> append "data[p] = 0;\n"
+            sb |> append "data[p"
+            sb |> appendWithSignAsOp relSrc
+            sb |> append "] = 0;\n"
             sb.ToString ()
 
     )

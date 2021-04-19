@@ -42,7 +42,7 @@ type IRInstruction =
     /// cells being increased by some factor (for example [->++>+++++]). Each pair in this list represents a
     /// destination, where the first int is the destination index (relative to the loop i), and the second int
     /// is the multiplication factor (the number of +'s). The loop above would give [1,2;2,5]
-    | MoveMulCell of (int*int) list
+    | MoveMulCell of src:int * dsts:(int*int) list
 
 let rec toIR instructions =
     instructions |> List.map (function

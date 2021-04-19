@@ -44,7 +44,7 @@ let rec optimize2 instructions =
     | WhileNonzero([AddCell(0,-1) | AddCell (0, 1)]) :: rest -> ClearCell 0 :: optimize2 rest
     
     // move loops
-    | WhileNonzero(MoveMulLoopBody targets) :: rest -> MoveMulCell targets :: optimize2 rest
+    | WhileNonzero(MoveMulLoopBody targets) :: rest -> MoveMulCell (0, targets) :: optimize2 rest
 
     | WhileNonzero(instructions) :: rest -> WhileNonzero (optimize2 instructions) :: optimize2 rest
     | this :: rest -> this :: optimize2 rest
@@ -56,15 +56,15 @@ let (|Offsettable|_|) instruction =
     match instruction with
     | AddCell (offset, n) -> Some (fun x -> AddCell (offset+x, n))
     | ClearCell offset -> Some (fun x -> ClearCell (offset+x))
-    | MoveMulCell destinations ->
+    | MoveMulCell (src, destinations) ->
         Some (fun x ->
-            destinations
-            |> List.map (fun (offset, n) ->
-                (offset+x, n)
-            )
-            |> MoveMulCell
+            let dsts' =
+                destinations
+                |> List.map (fun (offset, n) ->
+                    (offset+x, n)
+                )
+            MoveMulCell (src+x, dsts')
         )
-
     | AddPtr _ | Read | Write | WhileNonzero _ -> None
 
 /// Level-3-only optimizations

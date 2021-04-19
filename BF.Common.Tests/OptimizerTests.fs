@@ -70,73 +70,73 @@ module MoveMulLoops =
     let ``Given a simple move loop`` () =
         "+++++[->+<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [1,1]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[1,1])]
 
     [<Fact>]
     let ``Given a move loop with a non-adjacent cell`` () =
         "+++++[->>+<<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [2,1]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[2,1])]
 
     [<Fact>]
     let ``Given a move loop with a distant cell`` () =
         "+++++[->>>>>+<<<<<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [5,1]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[5,1])]
 
     [<Fact>]
     let ``Given a move-and-multiply loop with a factor of 3`` () =
         "+++++[->+++<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [1,3]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[1,3])]
 
     [<Fact>]
     let ``Given a move-and-multiply loop with a factor of 6 and non-adjacent cells`` () =
         "+++++[->>>++++++<<<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [3,6]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[3,6])]
 
     [<Fact>]
     let ``Given a move-and-multiply loop with iterator decrement at end of loop `` () =
         "+++++[>>++++<<-]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [2,4]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[2,4])]
 
     [<Fact>]
     let ``Given a move-and-multiply loop with two destinations`` () =
         "+++++[->+++++>+++<<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [1,5;2,3]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[1,5;2,3])]
 
     [<Fact>]
     let ``Given a move-and-multiply loop with three destinations`` () =
         "+++++[->+++++>+++>++<<<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [1,5;2,3;3,2]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[1,5;2,3;3,2])]
 
     [<Fact>]
     let ``Given a move-and-multiply loop with three non-adjacent destinations`` () =
         "+++++[->+++++>>+++>>++<<<<<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [1,5;3,3;5,2]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[1,5;3,3;5,2])]
 
     [<Fact>]
     let ``Given a move-and-multiply loop with two non-adjacent destinations, using cells both to the left and to the right`` () =
         "+++++[-<<+++++>>>+++<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [-2,5;1,3]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[-2,5;1,3])]
 
     [<Fact>]
     let ``Given a move-and-multiply loop with two non-adjacent destinations, using cells both to the left and to the right, and with the decrementer at the end`` () =
         "+++++[<<+++++>>>+++<-]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); MoveMulCell [-2,5;1,3]]
+        |> should equal [AddCell (0, 5); MoveMulCell (0,[-2,5;1,3])]
 
     [<Fact>]
     let ``Given a move-and-multiply loop with a very distant destination cell`` () =
         "+[>>>>>>>[-<<<<<<<<<<<+++++>>>>>>>>>>>]>>>]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 1); WhileNonzero [AddPtr 7; MoveMulCell [-11,5]; AddPtr 3]]
+        |> should equal [AddCell (0, 1); WhileNonzero [AddPtr 7; MoveMulCell (0,[-11,5]); AddPtr 3]]
 
 module OffsetOperationSequence =
     [<Fact>]
@@ -206,9 +206,9 @@ module OffsetOperationSequence =
         |> parse |> toIR |> optimizeUpto3
         |> should equal [
             AddCell (0,1)
-            MoveMulCell [1,2]
-            MoveMulCell [2,3]
-            MoveMulCell [3,2; 4,5]
+            MoveMulCell (0, [1,2])
+            MoveMulCell (1, [2,3])
+            MoveMulCell (2, [3,2; 4,5])
             AddPtr 1
         ]
 
@@ -218,11 +218,10 @@ module OffsetOperationSequence =
         |> parse |> toIR |> optimizeUpto3
         |> should equal [
             AddCell (0,-3)
-            MoveMulCell [1+1,2]
-            MoveMulCell [2+1,4; 2+2,1]
+            MoveMulCell (1, [1+1,2])
+            MoveMulCell (2, [2+1,4; 2+2,1])
             AddCell (3,7)
             ClearCell 5
             AddPtr 2
         ]
-    ()
 
