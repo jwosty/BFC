@@ -6,6 +6,11 @@ open System.Text
 open BF.Optimizer
 open BF.Parser
 
+let inline private append (x: 'a) (sb: ^T) =
+    //sb.Append x |> ignore
+    ((^T) : (member Append : 'a -> ^T) sb, x)
+    |> ignore
+
 /// Converts a list of BF instructions into C statements
 let rec CSource indentLevel bf =
     bf
@@ -36,10 +41,18 @@ let rec CSource indentLevel bf =
             for (relDst, factor) in dstsAndFactors do
                 let relDstWithOp =
                     if relDst < 0 then string relDst else "+" + string relDst
-                sb.Append indent |> ignore
-                sb.Append $"cells[loc{relDstWithOp}] += cells[loc] * {factor};\n" |> ignore
-            sb.Append indent |> ignore
-            sb.Append "cells[loc] = 0;\n" |> ignore
+                sb |> append indent
+                sb |> append "cells[loc"
+                if relDst < 0 then
+                    sb |> append relDst
+                else
+                    sb |> append "+"
+                    sb |> append relDst
+                sb |> append "] += cells[loc] * "
+                sb |> append factor
+                sb |> append ";\n"
+            sb |> append indent
+            sb |> append "cells[loc] = 0;\n"
             sb.ToString ()
 
     )
