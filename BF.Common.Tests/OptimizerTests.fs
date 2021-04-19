@@ -199,3 +199,30 @@ module OffsetOperationSequence =
             AddCell (0,2); AddCell (1,3); ClearCell 2; AddCell (3,-4);
             WhileNonzero [AddCell (0,-1); Write]
         ]
+
+    [<Fact>]
+    let ``Given an offset sequence of multiply loops`` () =
+        "+ [->++<] > [>+++<-] > [->++>+++++<<] <"
+        |> parse |> toIR |> optimizeUpto3
+        |> should equal [
+            AddCell (0,1)
+            MoveMulCell [1,2]
+            MoveMulCell [2,3]
+            MoveMulCell [3,2; 4,5]
+            AddPtr 1
+        ]
+
+    [<Fact>]
+    let ``Given a mixed multiply, clear, and addition offset sequence`` () =
+        "--- > [->++<] > [->++++>+<<] > +++++++ >> [-] <<<"
+        |> parse |> toIR |> optimizeUpto3
+        |> should equal [
+            AddCell (0,-3)
+            MoveMulCell [1+1,2]
+            MoveMulCell [2+1,4; 2+2,1]
+            AddCell (3,7)
+            ClearCell 5
+            AddPtr 2
+        ]
+    ()
+

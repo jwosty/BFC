@@ -50,27 +50,36 @@ let rec optimize2 instructions =
     | this :: rest -> this :: optimize2 rest
     
 /// An active pattern that matches any IR instruction that has an offset associated with it. First parameter returned
-/// is said offset, and the second parameter is a function that copy-and-updates the matched instruction with a
-/// new given offset.
+/// is said offset, and the second parameter is a function that recreates the matched instruction with the given value
+/// added to the offset
 let (|Offsettable|_|) instruction =
     match instruction with
-    | AddCell (offset, n) -> Some (offset, (fun offset' -> AddCell (offset', n)))
-    | ClearCell offset -> Some (offset, (fun offset' -> ClearCell offset'))
-    | AddPtr _ | MoveMulCell _ | Read | Write | WhileNonzero _ -> None
+    | AddCell (offset, n) -> Some (fun x -> AddCell (offset+x, n))
+    | ClearCell offset -> Some (fun x -> ClearCell (offset+x))
+    | MoveMulCell destinations ->
+        Some (fun x ->
+            destinations
+            |> List.map (fun (offset, n) ->
+                (offset+x, n)
+            )
+            |> MoveMulCell
+        )
+
+    | AddPtr _ | Read | Write | WhileNonzero _ -> None
 
 /// Level-3-only optimizations
 let rec optimize3 instructions =
     match instructions with
     | [] -> []
     
-    | AddPtr offsetA :: Offsettable (offsetB, withNewOffset) :: AddPtr offsetC :: rest ->
+    | AddPtr offsetA :: Offsettable addToInstOffset :: AddPtr offsetC :: rest ->
         let offset = offsetA+offsetC
-        [   yield withNewOffset (offsetA+offsetB)
+        [   yield addToInstOffset offsetA
             if offset <> 0 then yield AddPtr offset
             yield! rest]
         |> optimize3
-    | AddPtr offsetA :: Offsettable (offsetB, withNewOffset) :: rest ->
-        [   yield withNewOffset (offsetA+offsetB)
+    | AddPtr offsetA :: Offsettable addToInstOffset :: rest ->
+        [   yield addToInstOffset offsetA
             if offsetA <> 0 then yield AddPtr offsetA
             yield! rest]
         |> optimize3
