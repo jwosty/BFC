@@ -37,7 +37,12 @@ type IRInstruction =
     | Read
     | Write
     | WhileNonzero of IRInstruction list
-    | MoveMulCell of relDst: int * multiplicationFactor: int
+    //| MoveMulCell of relDst: int * multiplicationFactor: int
+    /// Represents a move-multiply loop, where the iterator cell is decremented until zero with all the other
+    /// cells being increased by some factor (for example [->++>+++++]). Each pair in this list represents a
+    /// destination, where the first int is the destination index (relative to the loop i), and the second int
+    /// is the multiplication factor (the number of +'s). The loop above would give [1,2;2,5]
+    | MoveMulCell of (int*int) list
 
 let rec toIR instructions =
     instructions |> List.map (function

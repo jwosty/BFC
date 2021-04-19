@@ -30,7 +30,7 @@ let rec CSource indentLevel bf =
             +           CSource (indentLevel + 1) code
             + indent + "}\n"
 
-        | MoveMulCell (relDst,factor) ->
+        | MoveMulCell [relDst,factor] ->
             let relDstWithOp =
                 if relDst < 0 then string relDst else "+" + string relDst
             indent + $"cells[loc{relDstWithOp}] += cells[loc] * {factor};\n"

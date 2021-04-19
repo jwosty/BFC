@@ -15,6 +15,15 @@ let optimize1 instructions =
     | WhileNonzero _ :: rest -> optimize1 rest
     | _ -> optimize1 instructions
 
+let (|MoveMulLoopBody|_|) loopBody =
+    // move-mul loops can either have the iterator decrement instruction at the beginning (e.g. [->+<]) or  the end
+    // (e.g. [>+<-]) of the loop -- both work perfectly fine
+    match loopBody with
+    | [AddCell -1; AddPtr dst; AddCell factor; AddPtr ndst]
+    | [AddPtr dst; AddCell factor; AddPtr ndst; AddCell -1] when dst = -ndst ->
+        Some [dst, factor]
+    | _ -> None
+
 /// Level-2-only optimizations
 let rec optimize2 instructions =
     match instructions with
@@ -23,9 +32,7 @@ let rec optimize2 instructions =
     | WhileNonzero([AddCell -1 | AddCell 1]) :: rest -> ClearCell :: optimize2 rest
     
     // move loops
-    | WhileNonzero([AddCell -1; AddPtr dst; AddCell factor; AddPtr ndst]) :: rest
-    | WhileNonzero([AddPtr dst; AddCell factor; AddPtr ndst; AddCell -1]) :: rest when dst = -ndst ->
-        MoveMulCell (dst, factor) :: optimize2 rest
+    | WhileNonzero(MoveMulLoopBody targets) :: rest -> MoveMulCell targets :: optimize2 rest
 
     | WhileNonzero(instructions) :: rest -> WhileNonzero(optimize2 instructions) :: optimize2 rest
     | this :: rest -> this :: optimize2 rest
