@@ -49,32 +49,32 @@ let rec optimize2 instructions =
     | WhileNonzero(instructions) :: rest -> WhileNonzero (optimize2 instructions) :: optimize2 rest
     | this :: rest -> this :: optimize2 rest
     
+/// An active pattern that matches any IR instruction that has an offset associated with it. First parameter returned
+/// is said offset, and the second parameter is a function that copy-and-updates the matched instruction with a
+/// new given offset.
+let (|Offsettable|_|) instruction =
+    match instruction with
+    | AddCell (offset, n) -> Some (offset, (fun offset' -> AddCell (offset', n)))
+    | ClearCell offset -> Some (offset, (fun offset' -> ClearCell offset'))
+    | AddPtr _ | MoveMulCell _ | Read | Write | WhileNonzero _ -> None
+
 /// Level-3-only optimizations
 let rec optimize3 instructions =
     match instructions with
     | [] -> []
-    | AddPtr offsetA :: AddCell (offsetB, n) :: AddPtr offsetC :: rest ->
+    
+    | AddPtr offsetA :: Offsettable (offsetB, withNewOffset) :: AddPtr offsetC :: rest ->
         let offset = offsetA+offsetC
-        [   yield AddCell (offsetA+offsetB, n)
+        [   yield withNewOffset (offsetA+offsetB)
             if offset <> 0 then yield AddPtr offset
             yield! rest]
         |> optimize3
-    | AddPtr offsetA :: AddCell (offsetB, n) :: rest ->
-        [   yield AddCell (offsetA+offsetB, n)
+    | AddPtr offsetA :: Offsettable (offsetB, withNewOffset) :: rest ->
+        [   yield withNewOffset (offsetA+offsetB)
             if offsetA <> 0 then yield AddPtr offsetA
             yield! rest]
         |> optimize3
-    | AddPtr offsetA :: ClearCell offsetB :: AddPtr offsetC :: rest ->
-        let offset = offsetA+offsetC
-        [   yield ClearCell (offsetA+offsetB)
-            if offset <> 0 then yield AddPtr offset
-            yield! rest]
-        |> optimize3
-    | AddPtr offsetA :: ClearCell offsetB :: rest ->
-        [   yield ClearCell (offsetA+offsetB)
-            if offsetA <> 0 then yield AddPtr offsetA
-            yield! rest]
-        |> optimize3
+
     | WhileNonzero instructions :: rest ->
         let blah = optimize3 instructions
         let orest = optimize3 rest
