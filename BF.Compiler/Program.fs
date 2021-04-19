@@ -13,19 +13,21 @@ type CliArgs =
     | [<MainCommand>] InFile of string
     | [<AltCommandLine "-o">] OutFile of string
     | [<AltCommandLine "-NO">] NoOptimize
+    | [<AltCommandLine "-c">] NCells of int
     | Target of Target
 
     interface IArgParserTemplate with
         member s.Usage =
             match s with
             | Target _ -> "Compile targetting the specified runtime. Currently, only 'native' is supported, which compiles to native code using GCC."
-            | InFile _ -> "Specify an input source file"
-            | OutFile _ -> "Specify an output source file"
-            | NoOptimize _ -> "Skip optimization"
+            | InFile _ -> "Specify an input source file."
+            | OutFile _ -> "Specify an output source file."
+            | NoOptimize _ -> "Skip optimization."
+            | NCells _ -> "The number of cells to allocate in the compiled program. Default is 1024."
 
 let argParser = ArgumentParser.Create<CliArgs>()
 
-let mainCompilation inFile outFile shouldOptimize = async {
+let mainCompilation inFile outFile shouldOptimize (nCells: int option) = async {
     let assembly = typeof<CliArgs>.Assembly
     //printfn "resources: %A" (assembly.GetManifestResourceNames ())
 
@@ -42,7 +44,13 @@ let mainCompilation inFile outFile shouldOptimize = async {
             optimize ir
         else ir
     let bDump = optIr |> To.CSource 1
-    let cSource = Regex.Replace(template, "  /// --- BF CODE --- ///", bDump)
+    
+    let template' =
+        match nCells with
+        | Some nCells ->
+            Regex.Replace(template, "N_CELLS = \\d+", "N_CELLS = " + string nCells)
+        | None -> template
+    let cSource = Regex.Replace(template', "  /// --- BF CODE --- ///", bDump)
     //printfn "cSrc:\n%s" cSource
     To.C cSource outFile
 }
@@ -59,7 +67,9 @@ let main args =
         let outFile = cliArgs.GetResult (<@ OutFile @>, defaultValue = Path.GetFileNameWithoutExtension inFile)
         let noOptimize = cliArgs.Contains (<@ NoOptimize @>)
 
-        Async.RunSynchronously (mainCompilation inFile outFile (not noOptimize))
+        let nCells = cliArgs.TryGetResult <@ NCells @>
+
+        Async.RunSynchronously (mainCompilation inFile outFile (not noOptimize) nCells)
         0
     with
         | :? ArguParseException ->
