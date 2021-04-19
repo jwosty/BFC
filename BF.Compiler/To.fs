@@ -31,7 +31,9 @@ let rec CSource indentLevel bf =
             + indent + "}\n"
 
         | MoveMulCell (relDst,factor) ->
-            indent + $"cells[loc + {relDst}] += cells[loc] * {factor};\n"
+            let relDstWithOp =
+                if relDst < 0 then string relDst else "+" + string relDst
+            indent + $"cells[loc{relDstWithOp}] += cells[loc] * {factor};\n"
             + indent + $"cells[loc] = 0;\n"
     )
     |> List.reduce (+)
