@@ -1,7 +1,8 @@
 ﻿module BF.Compiler.To
 open System
-open System.IO
 open System.Diagnostics
+open System.IO
+open System.Text
 open BF.Optimizer
 open BF.Parser
 
@@ -30,11 +31,17 @@ let rec CSource indentLevel bf =
             +           CSource (indentLevel + 1) code
             + indent + "}\n"
 
-        | MoveMulCell [relDst,factor] ->
-            let relDstWithOp =
-                if relDst < 0 then string relDst else "+" + string relDst
-            indent + $"cells[loc{relDstWithOp}] += cells[loc] * {factor};\n"
-            + indent + $"cells[loc] = 0;\n"
+        | MoveMulCell dstsAndFactors ->
+            let sb = new StringBuilder()
+            for (relDst, factor) in dstsAndFactors do
+                let relDstWithOp =
+                    if relDst < 0 then string relDst else "+" + string relDst
+                sb.Append indent |> ignore
+                sb.Append $"cells[loc{relDstWithOp}] += cells[loc] * {factor};\n" |> ignore
+            sb.Append indent |> ignore
+            sb.Append "cells[loc] = 0;\n" |> ignore
+            sb.ToString ()
+
     )
     |> List.reduce (+)
 
