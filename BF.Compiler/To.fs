@@ -17,22 +17,22 @@ let rec CSource indentLevel bf =
     |> List.map (fun instruction ->
         let indent = new String(' ', indentLevel * 2)
         match instruction with
-        | AddPtr n when n > 0 -> indent + "loc += " + string n + ";\n"
-        | AddPtr n when n < 0 -> indent + "loc -= " + string -n + ";\n"
+        | AddPtr n when n > 0 -> indent + "p += " + string n + ";\n"
+        | AddPtr n when n < 0 -> indent + "p -= " + string -n + ";\n"
         | AddPtr _ -> ""
     
-        | AddCell n when n > 0 -> indent + "cells[loc] += " + string n + ";\n"
-        | AddCell n when n < 0 -> indent + "cells[loc] -= " + string -n + ";\n"
+        | AddCell n when n > 0 -> indent + "data[p] += " + string n + ";\n"
+        | AddCell n when n < 0 -> indent + "data[p] -= " + string -n + ";\n"
         | AddCell _ -> ""
     
-        | Read -> indent + "cells[loc] = getchar();\n"
+        | Read -> indent + "data[p] = getchar();\n"
     
-        | Write -> indent + "putchar(cells[loc]);\n"
+        | Write -> indent + "putchar(data[p]);\n"
     
-        | ClearCell -> indent + "cells[loc] = 0;\n"
+        | ClearCell -> indent + "data[p] = 0;\n"
     
         | WhileNonzero code ->
-            indent + "while (cells[loc]) {\n"
+            indent + "while (data[p]) {\n"
             +           CSource (indentLevel + 1) code
             + indent + "}\n"
 
@@ -42,19 +42,19 @@ let rec CSource indentLevel bf =
                 let relDstWithOp =
                     if relDst < 0 then string relDst else "+" + string relDst
                 sb |> append indent
-                sb |> append "cells[loc"
+                sb |> append "data[p"
                 if relDst < 0 then
                     sb |> append relDst
                 else
                     sb |> append "+"
                     sb |> append relDst
-                sb |> append "] += cells[loc]"
+                sb |> append "] += data[p]"
                 if factor <> 1 then
                     sb |> append " * "
                     sb |> append factor
                 sb |> append ";\n"
             sb |> append indent
-            sb |> append "cells[loc] = 0;\n"
+            sb |> append "data[p] = 0;\n"
             sb.ToString ()
 
     )

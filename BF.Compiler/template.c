@@ -7,8 +7,8 @@
 int main(void)
 {
   // For now, there are a finite number of cells. 1024 should be more than enough in most cases...
-  short cells[1024];
-  unsigned int loc = 0;
+  short data[1024];
+  unsigned int p = 0;
   // The terminal device normally waits for newlines by default, so
   // change change it to send each character to stdin immediately.
   static struct termios oldt, newt;
@@ -17,7 +17,7 @@ int main(void)
   newt.c_lflag &= ~(ICANON);
   tcsetattr(STDIN_FILENO, TCSANOW, &newt);
   
-  memset(cells, 0, sizeof(cells));
+  memset(data, 0, sizeof(data));
 
   /// --- BF CODE --- ///
   
