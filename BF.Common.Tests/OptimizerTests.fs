@@ -33,10 +33,17 @@ let ``Given a combination of atom sequences`` () =
     |> should equal [AddCell 4; AddPtr 2; AddCell 3; AddPtr -3; AddCell -2; AddPtr 1; WhileNonzero [AddCell -2]]
 
 [<Fact>]
-let ``Given a clear loop`` () =
-    "[-]"
+let ``Given a comment loop at the beginning of a program`` () =
+    "[Hello, world. This loop body can never be executed, so we have ourselves a makeshift comment here. We can write
+      whatever we want in here! </comment>] +++++[-]"
     |> parse |> toIR |> optimize
-    |> should equal [ClearCell]
+    |> should equal [AddCell 5; ClearCell]
+
+[<Fact>]
+let ``Given a clear loop`` () =
+    "+[-]"
+    |> parse |> toIR |> optimize
+    |> should equal [AddCell 1; ClearCell]
 
 [<Fact>]
 let ``Given a clear loop inside a more complex loop`` () =
@@ -46,9 +53,9 @@ let ``Given a clear loop inside a more complex loop`` () =
 
 [<Fact>]
 let ``Given a + clear loop`` () =
-    "[+]"
+    "+[+]"
     |> parse |> toIR |> optimize
-    |> should equal [ClearCell]
+    |> should equal [AddCell 1; ClearCell]
 
 [<Fact>]
 let ``Given a + clear loop inside a more complex loop`` () =
