@@ -48,8 +48,10 @@ let rec CSource indentLevel bf =
                 else
                     sb |> append "+"
                     sb |> append relDst
-                sb |> append "] += cells[loc] * "
-                sb |> append factor
+                sb |> append "] += cells[loc]"
+                if factor <> 1 then
+                    sb |> append " * "
+                    sb |> append factor
                 sb |> append ";\n"
             sb |> append indent
             sb |> append "cells[loc] = 0;\n"
