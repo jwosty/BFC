@@ -191,8 +191,11 @@ module OffsetOperationSequence =
         |> parse |> toIR |> optimizeUpto3
         |> should equal [AddCell (0,1); ClearCell 0; ClearCell 1; ClearCell 3; AddPtr 2]
 
-    // TODO: optimize things like >+>[-]
-
-        //"+++++>>>++>>----->+++"
-        //|> parse |> toIR |> optimizeUpto3
-        //|> should equal [AddCell (0,5); AddCell (3,2); AddCell (5,-5); AddCell (6,3)]
+    [<Fact>]
+    let ``Given a mixed offset sequence of various instruction kinds`` () =
+        "++>+++>[-]>----<<<  [-.]"
+        |> parse |> toIR |> optimizeUpto3
+        |> should equal [
+            AddCell (0,2); AddCell (1,3); ClearCell 2; AddCell (3,-4);
+            WhileNonzero [AddCell (0,-1); Write]
+        ]
