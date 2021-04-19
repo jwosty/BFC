@@ -71,12 +71,22 @@ let (|MoveMulLoopBody|_|) loopBody =
             | None -> None
         | _ -> None
 
+    let rec f2 ΔpAcc list =
+        match list with
+        | [AddPtr p; AddCell -1] when p = -ΔpAcc -> Some []
+        | AddPtr p :: AddCell c :: xs ->
+            let ΔpAcc' = ΔpAcc+p
+            match f2 ΔpAcc' xs with
+            | Some xs -> Some ((ΔpAcc',c)::xs)
+            | None -> None
+        | _ -> None
+
     match loopBody with
     | AddCell -1 :: rest ->
         match f1 0 rest with
         | Some result -> Some result
         | None -> None
-    | _ -> None
+    | rest -> f2 0 rest
 
     //match loopBody with
     //| [] -> None

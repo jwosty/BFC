@@ -128,3 +128,9 @@ let ``Given a move-and-multiply loop with two non-adjacent destinations, using c
     "+++++[-<<+++++>>>+++<]"
     |> parse |> toIR |> optimize
     |> should equal [AddCell 5; MoveMulCell [-2,5;1,3]]
+
+[<Fact>]
+let ``Given a move-and-multiply loop with two non-adjacent destinations, using cells both to the left and to the right, and with the decrementer at the end`` () =
+    "+++++[<<+++++>>>+++<-]"
+    |> parse |> toIR |> optimize
+    |> should equal [AddCell 5; MoveMulCell [-2,5;1,3]]
