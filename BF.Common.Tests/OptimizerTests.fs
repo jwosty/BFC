@@ -39,31 +39,31 @@ module SimpleLoops =
         "[Hello, world. This loop body can never be executed, so we have ourselves a makeshift comment here. We can write
           whatever we want in here! </comment>] +++++[-]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 5); ClearCell]
+        |> should equal [AddCell (0, 5); ClearCell 0]
 
     [<Fact>]
     let ``Given a clear loop`` () =
         "+[-]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 1); ClearCell]
+        |> should equal [AddCell (0, 1); ClearCell 0]
 
     [<Fact>]
     let ``Given a clear loop inside a more complex loop`` () =
         "++>+++>++[>[-]<<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 2); AddPtr 1; AddCell (0, 3); AddPtr 1; AddCell (0, 2); WhileNonzero [AddPtr 1; ClearCell; AddPtr -2]]
+        |> should equal [AddCell (0, 2); AddPtr 1; AddCell (0, 3); AddPtr 1; AddCell (0, 2); WhileNonzero [AddPtr 1; ClearCell 0; AddPtr -2]]
 
     [<Fact>]
     let ``Given a + clear loop`` () =
         "+[+]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 1); ClearCell]
+        |> should equal [AddCell (0, 1); ClearCell 0]
 
     [<Fact>]
     let ``Given a + clear loop inside a more complex loop`` () =
         "++>+++>++[>[+]<<]"
         |> parse |> toIR |> optimizeUpto2
-        |> should equal [AddCell (0, 2); AddPtr 1; AddCell (0, 3); AddPtr 1; AddCell (0, 2); WhileNonzero [AddPtr 1; ClearCell; AddPtr -2]]
+        |> should equal [AddCell (0, 2); AddPtr 1; AddCell (0, 3); AddPtr 1; AddCell (0, 2); WhileNonzero [AddPtr 1; ClearCell 0; AddPtr -2]]
 
 module MoveMulLoops =
     [<Fact>]
@@ -184,6 +184,12 @@ module OffsetOperationSequence =
             AddCell (1,1)
             WhileNonzero [AddCell (0,3); AddCell (2,1); AddCell (5,2); AddCell (7,-1); AddPtr 7]
             AddCell (2,1)]
+
+    [<Fact>]
+    let ``Given an offset sequence of clear loops using `` () =
+        "+ [-]>[-]>>[-]<"
+        |> parse |> toIR |> optimizeUpto3
+        |> should equal [AddCell (0,1); ClearCell 0; ClearCell 1; ClearCell 3; AddPtr 2]
 
     // TODO: optimize things like >+>[-]
 

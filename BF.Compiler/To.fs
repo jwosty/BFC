@@ -34,7 +34,7 @@ let rec CSource indentLevel bf =
     
         | Write -> indent + "putchar(data[p]);\n"
     
-        | ClearCell -> indent + "data[p] = 0;\n"
+        | ClearCell ptrOffset -> indent + "data[p" + withSignAsOp ptrOffset + "] = 0;\n"
     
         | WhileNonzero code ->
             indent + "while (data[p]) {\n"

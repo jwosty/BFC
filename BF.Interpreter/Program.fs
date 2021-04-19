@@ -10,7 +10,7 @@ let rec execute (cells: char[]) currentCell program =
         match instruction with
         | AddPtr(n) -> currentCell + n
         | AddCell(pOffset,n) -> cells.[currentCell+pOffset] <- cells.[currentCell] + char n; currentCell
-        | ClearCell -> cells.[currentCell] <- '\000'; currentCell
+        | ClearCell pOffset -> cells.[currentCell+pOffset] <- '\000'; currentCell
         | Read -> cells.[currentCell] <- (System.Console.ReadKey ()).KeyChar; currentCell
         | Write -> System.Console.Write cells.[currentCell]; currentCell
         | WhileNonzero(loopProgram) ->

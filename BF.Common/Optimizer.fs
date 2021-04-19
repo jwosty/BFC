@@ -41,7 +41,7 @@ let rec optimize2 instructions =
     match instructions with
     | [] -> []
     // optimize clear-loops (`[-] and [+]` become ClearCell)
-    | WhileNonzero([AddCell(0,-1) | AddCell (0, 1)]) :: rest -> ClearCell :: optimize2 rest
+    | WhileNonzero([AddCell(0,-1) | AddCell (0, 1)]) :: rest -> ClearCell 0 :: optimize2 rest
     
     // move loops
     | WhileNonzero(MoveMulLoopBody targets) :: rest -> MoveMulCell targets :: optimize2 rest
@@ -61,6 +61,17 @@ let rec optimize3 instructions =
         |> optimize3
     | AddPtr offsetA :: AddCell (offsetB, n) :: rest ->
         [   yield AddCell (offsetA+offsetB, n)
+            if offsetA <> 0 then yield AddPtr offsetA
+            yield! rest]
+        |> optimize3
+    | AddPtr offsetA :: ClearCell offsetB :: AddPtr offsetC :: rest ->
+        let offset = offsetA+offsetC
+        [   yield ClearCell (offsetA+offsetB)
+            if offset <> 0 then yield AddPtr offset
+            yield! rest]
+        |> optimize3
+    | AddPtr offsetA :: ClearCell offsetB :: rest ->
+        [   yield ClearCell (offsetA+offsetB)
             if offsetA <> 0 then yield AddPtr offsetA
             yield! rest]
         |> optimize3

@@ -33,7 +33,7 @@ let parse code =
 type IRInstruction =
     | AddPtr of int
     | AddCell of offset:int * number:int
-    | ClearCell
+    | ClearCell of offset:int
     | Read
     | Write
     | WhileNonzero of IRInstruction list
