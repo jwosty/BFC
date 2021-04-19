@@ -134,3 +134,9 @@ let ``Given a move-and-multiply loop with two non-adjacent destinations, using c
     "+++++[<<+++++>>>+++<-]"
     |> parse |> toIR |> optimize
     |> should equal [AddCell 5; MoveMulCell [-2,5;1,3]]
+
+[<Fact>]
+let ``Given a move-and-multiply loop with a very distant destination cell`` () =
+    "+[>>>>>>>[-<<<<<<<<<<<+++++>>>>>>>>>>>]>>>]"
+    |> parse |> toIR |> optimize
+    |> should equal [AddCell 1; WhileNonzero [AddPtr 7; MoveMulCell [-11,5]; AddPtr 3]]
