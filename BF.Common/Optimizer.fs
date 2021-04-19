@@ -40,24 +40,39 @@ let (|MoveMulLoopBody|_|) loopBody =
 let rec optimize2 instructions =
     match instructions with
     | [] -> []
-    | this :: rest -> this :: optimize2 rest
+    // optimize clear-loops (`[-] and [+]` become ClearCell)
+    | WhileNonzero([AddCell(0,-1) | AddCell (0, 1)]) :: rest -> ClearCell :: optimize2 rest
+    
+    // move loops
+    | WhileNonzero(MoveMulLoopBody targets) :: rest -> MoveMulCell targets :: optimize2 rest
 
+    | WhileNonzero(instructions) :: rest -> WhileNonzero (optimize2 instructions) :: optimize2 rest
+    | this :: rest -> this :: optimize2 rest
+    
 /// Level-3-only optimizations
 let rec optimize3 instructions =
     match instructions with
     | [] -> []
-    // optimize clear-loops (`[-] and [+]` become ClearCell)
-    | WhileNonzero([AddCell(0,-1) | AddCell (0, 1)]) :: rest -> ClearCell :: optimize3 rest
-    
-    // move loops
-    | WhileNonzero(MoveMulLoopBody targets) :: rest -> MoveMulCell targets :: optimize3 rest
-
-    | WhileNonzero(instructions) :: rest -> WhileNonzero(optimize3 instructions) :: optimize3 rest
+    | AddPtr offsetA :: AddCell (offsetB, n) :: AddPtr offsetC :: rest ->
+        let offset = offsetA+offsetC
+        [   yield AddCell (offsetA+offsetB, n)
+            if offset <> 0 then yield AddPtr offset
+            yield! rest]
+        |> optimize3
+    | AddPtr offsetA :: AddCell (offsetB, n) :: rest ->
+        [   yield AddCell (offsetA+offsetB, n)
+            if offsetA <> 0 then yield AddPtr offsetA
+            yield! rest]
+        |> optimize3
+    | WhileNonzero instructions :: rest ->
+        let blah = optimize3 instructions
+        let orest = optimize3 rest
+        WhileNonzero blah :: orest
     | this :: rest -> this :: optimize3 rest
-    
+
+let optimizeUpto1 instructions = optimize1 instructions
+let optimizeUpto2 instructions = instructions |> optimizeUpto1 |> optimize2
+let optimizeUpto3 instructions = instructions |> optimizeUpto2 |> optimize3
+
 /// All optimizations
-let rec optimize instructions =
-    instructions
-    |> optimize1
-    |> optimize2
-    |> optimize3
+let rec optimize instructions = optimizeUpto3 instructions

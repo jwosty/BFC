@@ -42,7 +42,7 @@ let mainCompilation inFile outFile oLevel (nCells: int option) = async {
         |> parse |> toIR
 
     let optFuncs =
-        [|id; optimize1; optimize2; optimize3|].[0 .. (oLevel |> max 0 |> min 3)]
+        [|id; optimize1; optimize3; optimize2|].[0 .. (oLevel |> max 0 |> min 3)]
         |> Array.rev
     let optIr =
         optFuncs
