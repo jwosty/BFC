@@ -41,13 +41,9 @@ let mainCompilation inFile outFile oLevel (nCells: int option) = async {
         inFile |> File.ReadAllText
         |> parse |> toIR
 
-    let optFuncs =
-        [|id; optimize1; optimize3; optimize2|].[0 .. (oLevel |> max 0 |> min 3)]
-        |> Array.rev
-    let optIr =
-        optFuncs
-        |> Array.fold (fun x f -> f x) ir
-
+    let optFunc =
+        [|id;optimizeUpto1;optimizeUpto2;optimizeUpto3|].[oLevel |> max 0 |> min 3]
+    let optIr = optFunc ir
     let bDump = optIr |> To.CSource 1
     
     let template' =

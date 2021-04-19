@@ -11,6 +11,11 @@ let inline private append (x: 'a) (sb: ^T) =
     ((^T) : (member Append : 'a -> ^T) sb, x)
     |> ignore
 
+let withSignAsOp (x: int) =
+    if x = 0 then ""
+    else if x > 0 then "+" + string x
+    else string x
+
 /// Converts a list of BF instructions into C statements
 let rec CSource indentLevel bf =
     bf
@@ -21,8 +26,8 @@ let rec CSource indentLevel bf =
         | AddPtr n when n < 0 -> indent + "p -= " + string -n + ";\n"
         | AddPtr _ -> ""
     
-        | AddCell (ptrOffset, n) when n > 0 -> indent + "data[p] += " + string n + ";\n"
-        | AddCell (ptrOffset, n) when n < 0 -> indent + "data[p] -= " + string -n + ";\n"
+        | AddCell (ptrOffset, n) when n > 0 -> indent + "data[p" + withSignAsOp ptrOffset + "] += " + string n + ";\n"
+        | AddCell (ptrOffset, n) when n < 0 -> indent + "data[p" + withSignAsOp ptrOffset + "] -= " + string -n + ";\n"
         | AddCell _ -> ""
     
         | Read -> indent + "data[p] = getchar();\n"
