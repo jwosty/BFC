@@ -101,6 +101,30 @@ let ``Given a move-and-multiply loop with iterator decrement at end of loop `` (
 
 //[<Fact>]
 //let ``Given a move-and-multiply loop with multiple destinations`` () =
-//    "+++++[->>+++++>+++>++<<]"
+//    "+++++[->>+++++>+++>++<<<<]"
 //    |> parse |> toIR |> optimize
 //    |> should equal [AddCell 5; MoveMulCell [2,5; 3,3; 4,2]]
+
+[<Fact>]
+let ``Given a move-and-multiply loop with two destinations`` () =
+    "+++++[->+++++>+++<<]"
+    |> parse |> toIR |> optimize
+    |> should equal [AddCell 5; MoveMulCell [1,5;2,3]]
+
+[<Fact>]
+let ``Given a move-and-multiply loop with three destinations`` () =
+    "+++++[->+++++>+++>++<<<]"
+    |> parse |> toIR |> optimize
+    |> should equal [AddCell 5; MoveMulCell [1,5;2,3;3,2]]
+
+[<Fact>]
+let ``Given a move-and-multiply loop with three non-adjacent destinations`` () =
+    "+++++[->+++++>>+++>>++<<<<<]"
+    |> parse |> toIR |> optimize
+    |> should equal [AddCell 5; MoveMulCell [1,5;3,3;5,2]]
+
+[<Fact>]
+let ``Given a move-and-multiply loop with two non-adjacent destinations, using cells both to the left and to the right`` () =
+    "+++++[-<<+++++>>>+++<]"
+    |> parse |> toIR |> optimize
+    |> should equal [AddCell 5; MoveMulCell [-2,5;1,3]]
