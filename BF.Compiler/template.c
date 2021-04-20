@@ -10,7 +10,7 @@ int main(void)
 {
   // For now, there are a finite number of cells. The default of 1024 should be more than enough in most cases...
   short data[N_CELLS];
-  unsigned int p = 0;
+  unsigned int p = N_CELLS / 2;
   // The terminal device normally waits for newlines by default, so
   // change change it to send each character to stdin immediately.
   static struct termios oldt, newt;
