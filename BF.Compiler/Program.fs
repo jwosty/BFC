@@ -44,7 +44,9 @@ let mainCompilation inFile outFile oLevel (nCells: int option) = async {
     let optFunc =
         [|id;optimizeUpto1;optimizeUpto2;optimizeUpto3|].[oLevel |> max 0 |> min 3]
     let optIr = optFunc ir
-    let bDump = optIr |> To.CSource 1
+    let sb = new System.Text.StringBuilder()
+    optIr |> To.CSource sb 1
+    let bDump = sb.ToString()
     
     let template' =
         match nCells with

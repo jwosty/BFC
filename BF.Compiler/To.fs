@@ -24,32 +24,52 @@ let appendWithSignAsOp (x: int) (sb: StringBuilder) =
         sb |> append x
 
 /// Converts a list of BF instructions into C statements
-let rec CSource indentLevel bf =
-    bf
-    |> List.map (fun instruction ->
-        let indent = new String(' ', indentLevel * 2)
+let rec CSource sb indentLevel bf =
+    for instruction in bf do
+        let indent = new string(' ', indentLevel * 2)
         match instruction with
-        | AddPtr n when n > 0 -> indent + "p += " + string n + ";\n"
-        | AddPtr n when n < 0 -> indent + "p -= " + string -n + ";\n"
-        | AddPtr _ -> ""
+        | AddPtr 0 -> ()
+        | AddPtr n ->
+            sb |> append indent
+            sb |> append (if n > 0 then "p += " else "p -= ")
+            sb |> append (string (abs n))
+            sb |> append ";\n"
     
-        | AddCell (ptrOffset, n) when n > 0 -> indent + "data[p" + withSignAsOp ptrOffset + "] += " + string n + ";\n"
-        | AddCell (ptrOffset, n) when n < 0 -> indent + "data[p" + withSignAsOp ptrOffset + "] -= " + string -n + ";\n"
-        | AddCell _ -> ""
+        //| AddCell (ptrOffset, n) when n > 0 -> indent + "data[p" + withSignAsOp ptrOffset + "] += " + string n + ";\n"
+        //| AddCell (ptrOffset, n) when n < 0 -> indent + "data[p" + withSignAsOp ptrOffset + "] -= " + string -n + ";\n"
+        //| AddCell _ -> ""
+        | AddCell (_, 0) -> ()
+        | AddCell (ptrOffset, n) ->
+            sb |> append indent
+            sb |> append "data[p"
+            sb |> append (withSignAsOp ptrOffset)
+            sb |> append (if n > 0 then "] += " else "] -= ")
+            sb |> append (string (abs n))
+            sb |> append ";\n"
     
-        | Read -> indent + "data[p] = getchar();\n"
+        | Read -> //indent + "data[p] = getchar();\n"
+            sb |> append indent
+            sb |> append "data[p] = getchar();\n"
+
+        | Write -> //indent + "putchar(data[p]);\n"
+            sb |> append indent
+            sb |> append "putchar(data[p]);\n"
     
-        | Write -> indent + "putchar(data[p]);\n"
-    
-        | ClearCell ptrOffset -> indent + "data[p" + withSignAsOp ptrOffset + "] = 0;\n"
-    
+        | ClearCell ptrOffset -> //indent + "data[p" + withSignAsOp ptrOffset + "] = 0;\n"
+            sb |> append indent
+            sb |> append "data[p"
+            sb |> appendWithSignAsOp ptrOffset
+            sb |> append "] = 0;\n"
+
         | WhileNonzero code ->
-            indent + "while (data[p]) {\n"
-            +           CSource (indentLevel + 1) code
-            + indent + "}\n"
+            sb |> append indent
+            sb |> append "while (data[p]) {\n"
+            CSource sb (indentLevel + 1) code
+            sb |> append indent
+            sb |> append "}\n"
+            ()
 
         | MoveMulCell (relSrc, destinations) ->
-            let sb = new StringBuilder()
             for (relDst, factor) in destinations do
                 sb |> append indent
                 sb |> append "data[p"
@@ -65,10 +85,6 @@ let rec CSource indentLevel bf =
             sb |> append "data[p"
             sb |> appendWithSignAsOp relSrc
             sb |> append "] = 0;\n"
-            sb.ToString ()
-
-    )
-    |> List.reduce (+)
 
 /// Compile C source code by invoking gcc
 let C source out =
