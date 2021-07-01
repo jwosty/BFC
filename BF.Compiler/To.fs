@@ -35,9 +35,6 @@ let rec CSource sb indentLevel bf =
             sb |> append (string (abs n))
             sb |> append ";\n"
     
-        //| AddCell (ptrOffset, n) when n > 0 -> indent + "data[p" + withSignAsOp ptrOffset + "] += " + string n + ";\n"
-        //| AddCell (ptrOffset, n) when n < 0 -> indent + "data[p" + withSignAsOp ptrOffset + "] -= " + string -n + ";\n"
-        //| AddCell _ -> ""
         | AddCell (_, 0) -> ()
         | AddCell (ptrOffset, n) ->
             sb |> append indent
@@ -47,15 +44,15 @@ let rec CSource sb indentLevel bf =
             sb |> append (string (abs n))
             sb |> append ";\n"
     
-        | Read -> //indent + "data[p] = getchar();\n"
+        | Read ->
             sb |> append indent
             sb |> append "data[p] = getchar();\n"
 
-        | Write -> //indent + "putchar(data[p]);\n"
+        | Write ->
             sb |> append indent
             sb |> append "putchar(data[p]);\n"
     
-        | ClearCell ptrOffset -> //indent + "data[p" + withSignAsOp ptrOffset + "] = 0;\n"
+        | ClearCell ptrOffset ->
             sb |> append indent
             sb |> append "data[p"
             sb |> appendWithSignAsOp ptrOffset
